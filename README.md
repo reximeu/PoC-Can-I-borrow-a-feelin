@@ -14,7 +14,7 @@ Group Chat
 
 ![Group Chat](Graphs_Group.png "Group Chat")
 
-## Export Whatsapp Chat History
+## Export Whatsapp Chat
 
 - Go to WhatsApp
 - Go to a Chat
@@ -29,15 +29,12 @@ There are two variables:
 
 - FILE: Chat file location (absolute path)
 - FREQS: Frequencies that Pandas uses to resample the data by date-ranges ('Y' == Year, 'W' == Week, ...)
+- ANONYMIZE: Don't display names on the legends
 
 ```python
-FILE = ""
-FREQS = { 
-    'M' : (0,0),
-    'W' : (0,1),
-    'D' : (1,0),
-    'H' : (1,1),
-}
+FILE = "/path/to/file.txt"
+FREQS = [ 'Y', 'M', 'W', 'D', 'H', ]
+ANONYMIZE = True/False
 ```
 
 ## Usage
@@ -49,8 +46,8 @@ pip install -r requirements
 python3 app.py
 ```
  
-### TODO
+## Spanish Sentiment Analysis
 
-- Translate text to english to improve results
-- Translate VADER Lexicon (idk if it's possible)
-- Train a model with tweets
+[sentiment-analysis-spanish](https://github.com/sentiment-analysis-spanish/sentiment-spanish)
+
+THANKS YOU SO MUCH!! 

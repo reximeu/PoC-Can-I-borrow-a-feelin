@@ -3,27 +3,22 @@ import datetime
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from nltk.sentiment import SentimentIntensityAnalyzer
+from sentiment_analysis_spanish import sentiment_analysis
 
 
-FILE = ""
-FREQS = { 
-    'W' : (0,0),
-    'M' : (0,1),
-    'D' : (1,0),
-    'H' : (1,1),
-}
+FILE = "/path/to/file.txt"
+FREQS = [ 'Y', 'M', 'W', 'D', 'H', ]
+ANONYMIZE = True
 
 data = []
 parsed = []
-analyzer = SentimentIntensityAnalyzer()
+analyzer = sentiment_analysis.SentimentAnalysisSpanish()
 
 date_regex = r"(\d{1,2}\/\d{1,2}\/\d{1,2})"
 time_regex = r"(\d{1,2}:\d{1,2})"
 user_regex = r"(.*?)"
 text_regex = r"(.*)"
 full_regex = date_regex + " " + time_regex + " - " + user_regex + ": " + text_regex
-
 
 # READ FILE LINES
 with open(FILE, 'r') as f:
@@ -48,27 +43,24 @@ for line in parsed:
     name = index.groups()[2]
     text = index.groups()[3]
 
-    scores = analyzer.polarity_scores(line)
-    neg = scores.get('neg')
-    neu = scores.get('neu')
-    pos = scores.get('pos')
-    com = scores.get('compound')
+    score = analyzer.sentiment(line)
     
     date_time = datetime.datetime(
         day = int(date[0]), 
         month = int(date[1]), 
         year = int(date[2]) + 2000, 
         hour = int(time[0]), 
-        minute = int(time[1]))
-    data.append([date_time, name, pos, neu, neg, com])
+        minute = int(time[1])
+    )
+    data.append([date_time, name, score])
 
 # CONVERT TO DATAFRAME
 data = pd.DataFrame(data)
-data.columns =[ 'dates', 'names', 'pos', 'neu', 'neg', 'com' ]
+data.columns =[ 'dates', 'names', 'scores' ]
 data.dates = pd.to_datetime(data.dates, unit='s')
 
 # CREATE THE FIGURE
-fig, ax = plt.subplots(2, 2)
+fig, ax = plt.subplots(nrows=len(FREQS), ncols=1)
 
 # FOR NAME IN A CHAT
 names = np.unique(data.names)
@@ -77,16 +69,18 @@ for name in names:
     subset = data[data.names == name]
 
     # FOR ALL TYPES OF FREQUENCIES SETTED AT THE TOP
-    for freq, freq_ax in FREQS.items():
+    for index, freq in enumerate(FREQS):
         resample = subset.resample(freq, on='dates').sum()
-        i1 = freq_ax[0]
-        i2 = freq_ax[1]
-
         x = resample.index
-        y = resample['pos']
-        # PRINT POSITIVITY
-        ax[i1, i2].plot(x, y, label = f'{name} {freq}', color=color)
+        y = resample['scores']
+        
+        # PRINT SENTIMENT
+        label = f'{freq}' if ANONYMIZE else f'{name} {freq}'
+        ax[index].plot(x, y, label = label, color=color)
+        
+fig.legend(loc=7)
+fig.tight_layout()
+fig.subplots_adjust(right=0.75)  
 
 # DISPLAY THE GRAPH
-plt.legend(loc=(1.04,0))
 plt.show()
